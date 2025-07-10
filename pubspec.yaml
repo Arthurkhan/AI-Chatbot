@@ -1,0 +1,71 @@
+name: ai_chatbot
+description: A Flutter-based AI chatbot mobile app with local LLM execution
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # UI/UX
+  cupertino_icons: ^1.0.6
+  google_fonts: ^6.1.0
+  flutter_animate: ^4.3.0
+  shimmer: ^3.0.0
+  
+  # AI/ML
+  flutter_gemma: ^0.2.0
+  # Alternative: llm_toolkit: ^1.0.0
+  
+  # Permissions
+  permission_handler: ^11.3.1
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # Local Storage
+  shared_preferences: ^2.2.2
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  
+  # Device Features
+  contacts_service: ^0.6.3
+  flutter_contacts: ^1.1.7
+  device_calendar: ^4.3.1
+  geolocator: ^10.1.0
+  image_picker: ^1.0.4
+  file_picker: ^6.1.1
+  flutter_local_notifications: ^16.2.0
+  telephony: ^0.2.0
+  url_launcher: ^6.2.2
+  
+  # Utilities
+  uuid: ^4.2.1
+  intl: ^0.18.1
+  flutter_markdown: ^0.6.18
+  path_provider: ^2.1.1
+  
+  # Audio
+  record: ^5.0.4
+  just_audio: ^0.9.36
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+  build_runner: ^2.4.7
+  json_serializable: ^6.7.1
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/
+  
+  fonts:
+    - family: CustomIcons
+      fonts:
+        - asset: assets/fonts/CustomIcons.ttf

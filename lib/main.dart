@@ -21,17 +21,23 @@ void main() async {
   // Initialize services
   await DatabaseService.instance.initialize();
   
+  // Initialize PersonalityService and load personalities
+  final personalityService = PersonalityService();
+  await personalityService.loadPersonalities();
+  
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
   
-  runApp(const MyApp());
+  runApp(MyApp(personalityService: personalityService));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final PersonalityService personalityService;
+  
+  const MyApp({super.key, required this.personalityService});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +45,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeService()),
         ChangeNotifierProvider(create: (_) => AIService()),
-        ChangeNotifierProvider(create: (_) => PersonalityService()),
+        ChangeNotifierProvider.value(value: personalityService),
         Provider(create: (_) => PermissionService()),
       ],
       child: Consumer<ThemeService>(

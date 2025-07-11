@@ -32,6 +32,14 @@ class AIService extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
+      // Skip AI initialization on web platform
+      if (kIsWeb) {
+        _error = 'AI features are not available on web platform. Please use the mobile app for AI functionality.';
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
       // Check if model file exists
       final modelPath = await _getModelPath();
       if (modelPath != null) {
@@ -59,6 +67,12 @@ class AIService extends ChangeNotifier {
   Future<void> downloadModel() async {
     if (_isLoading) return;
 
+    if (kIsWeb) {
+      _error = 'Model download is not available on web platform.';
+      notifyListeners();
+      return;
+    }
+    
     try {
       _isLoading = true;
       _downloadProgress = 0.0;
@@ -92,6 +106,11 @@ The app will automatically copy it to the right place.''';
   }
 
   Future<String?> _getModelPath() async {
+    // Skip on web platform
+    if (kIsWeb) {
+      return null;
+    }
+    
     // Get app's documents directory for storing the model
     final appDir = await getApplicationDocumentsDirectory();
     final modelPath = '${appDir.path}/model.bin';
@@ -133,6 +152,11 @@ The app will automatically copy it to the right place.''';
     required Personality personality,
     List<app_models.Message>? conversationHistory,
   }) async* {
+    if (kIsWeb) {
+      yield 'AI features are not available on web platform. Please use the mobile app for AI functionality.';
+      return;
+    }
+    
     if (!_isInitialized) {
       yield 'AI model not initialized. Please download the model first.';
       return;

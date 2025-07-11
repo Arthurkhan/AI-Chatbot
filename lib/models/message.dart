@@ -73,4 +73,7 @@ class Message {
     final attachmentsList = metadata!['attachments'] as List?;
     return attachmentsList?.cast<String>() ?? [];
   }
+
+  // Getter for role to maintain compatibility
+  String get role => isUser ? 'user' : 'assistant';
 }

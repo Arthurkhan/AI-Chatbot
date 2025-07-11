@@ -28,17 +28,17 @@ dependencies:
   # Local Storage
   shared_preferences: ^2.2.2
   sqflite: ^2.3.0
+  sqflite_common_ffi_web: ^0.4.5
   path: ^1.8.3
   
   # Device Features
-  contacts_service: ^0.6.3
   flutter_contacts: ^1.1.7
   device_calendar: ^4.3.1
   geolocator: ^10.1.0
   image_picker: ^1.0.4
-  file_picker: ^6.1.1
-  flutter_local_notifications: ^16.2.0
-  telephony: ^0.2.0
+  file_picker: ^8.1.4
+  flutter_local_notifications: ^17.2.4
+  # telephony: ^0.2.0  # Commented out - outdated package
   url_launcher: ^6.2.2
   
   # Utilities
@@ -48,7 +48,7 @@ dependencies:
   path_provider: ^2.1.1
   
   # Audio
-  record: ^5.0.4
+  flutter_sound: ^9.10.4
   just_audio: ^0.9.36
 
 dev_dependencies:
@@ -64,6 +64,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - assets/models/
   
   fonts:
     - family: CustomIcons

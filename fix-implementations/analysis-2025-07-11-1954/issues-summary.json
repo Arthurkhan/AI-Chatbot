@@ -1,0 +1,242 @@
+{
+  "analysis_id": "2025-07-11-1954",
+  "metadata": {
+    "project_name": "AI Chatbot Flutter App",
+    "analyzed_files": 112,
+    "total_issues": 47,
+    "critical_issues": 8,
+    "high_issues": 12,
+    "medium_issues": 18,
+    "low_issues": 9,
+    "estimated_total_hours": 32,
+    "scan_duration_minutes": 8
+  },
+  "issues": [
+    {
+      "id": "SEC-001",
+      "type": "security",
+      "severity": "critical",
+      "title": "Hardcoded Model URL Without Integrity Check",
+      "file": "lib/config/constants.dart",
+      "line_start": 12,
+      "line_end": 12,
+      "estimated_hours": 4,
+      "dependencies": ["crypto package"],
+      "fix_instructions": "Add SHA256 checksum verification for downloaded AI models to prevent malicious model injection"
+    },
+    {
+      "id": "SEC-002",
+      "type": "security",
+      "severity": "critical",
+      "title": "Debug Signing Configuration for Release Builds",
+      "file": "android/app/build.gradle.kts",
+      "line_start": 39,
+      "line_end": 41,
+      "estimated_hours": 2,
+      "dependencies": [],
+      "fix_instructions": "Configure proper release signing with keystore instead of debug keys"
+    },
+    {
+      "id": "SEC-003",
+      "type": "security",
+      "severity": "critical",
+      "title": "Missing iOS Permission Usage Descriptions",
+      "file": "ios/Runner/Info.plist",
+      "line_start": 1,
+      "line_end": 50,
+      "estimated_hours": 2,
+      "dependencies": [],
+      "fix_instructions": "Add all required NSUsageDescription keys for requested permissions"
+    },
+    {
+      "id": "SEC-004",
+      "type": "security",
+      "severity": "critical",
+      "title": "SQL Injection Vulnerability in Message Creation",
+      "file": "lib/services/database_service.dart",
+      "line_start": 235,
+      "line_end": 244,
+      "estimated_hours": 2,
+      "dependencies": [],
+      "fix_instructions": "Replace rawUpdate with parameterized update method to prevent SQL injection"
+    },
+    {
+      "id": "SEC-005",
+      "type": "security",
+      "severity": "high",
+      "title": "Unrestricted File System Access on Android",
+      "file": "lib/services/ai_service.dart",
+      "line_start": 119,
+      "line_end": 126,
+      "estimated_hours": 4,
+      "dependencies": [],
+      "fix_instructions": "Use file_picker for user-controlled file selection instead of direct Downloads access"
+    },
+    {
+      "id": "SEC-006",
+      "type": "security",
+      "severity": "high",
+      "title": "Missing Content Security Policy for Web",
+      "file": "web/index.html",
+      "line_start": 1,
+      "line_end": 38,
+      "estimated_hours": 2,
+      "dependencies": [],
+      "fix_instructions": "Add CSP meta tag to prevent XSS attacks on web platform"
+    },
+    {
+      "id": "SEC-007",
+      "type": "quality",
+      "severity": "medium",
+      "title": "Insecure Package Name",
+      "file": "android/app/build.gradle.kts",
+      "line_start": 26,
+      "line_end": 26,
+      "estimated_hours": 3,
+      "dependencies": [],
+      "fix_instructions": "Change from com.example to unique reverse domain package name"
+    },
+    {
+      "id": "PERF-001",
+      "type": "performance",
+      "severity": "high",
+      "title": "Large AI Model Loaded in Memory",
+      "file": "lib/services/ai_service.dart",
+      "line_start": 39,
+      "line_end": 44,
+      "estimated_hours": 6,
+      "dependencies": ["system_info2 package"],
+      "fix_instructions": "Implement memory checks and optimization for 500MB model loading"
+    },
+    {
+      "id": "PERF-002",
+      "type": "performance",
+      "severity": "high",
+      "title": "No Pagination for Message Loading",
+      "file": "lib/services/database_service.dart",
+      "line_start": 249,
+      "line_end": 260,
+      "estimated_hours": 4,
+      "dependencies": ["UI updates"],
+      "fix_instructions": "Implement proper pagination with DESC ordering and list reversal"
+    },
+    {
+      "id": "PERF-003",
+      "type": "performance",
+      "severity": "medium",
+      "title": "Synchronous File Operations",
+      "file": "lib/services/ai_service.dart",
+      "line_start": 98,
+      "line_end": 128,
+      "estimated_hours": 2,
+      "dependencies": [],
+      "fix_instructions": "Convert all file operations to async to prevent UI blocking"
+    },
+    {
+      "id": "PERF-004",
+      "type": "performance",
+      "severity": "medium",
+      "title": "Missing Database Query Optimization",
+      "file": "lib/services/database_service.dart",
+      "line_start": 106,
+      "line_end": 113,
+      "estimated_hours": 3,
+      "dependencies": [],
+      "fix_instructions": "Add composite indices and optimize queries for better performance"
+    },
+    {
+      "id": "QUAL-001",
+      "type": "quality",
+      "severity": "high",
+      "title": "Deprecated Audio Package",
+      "file": "pubspec.yaml",
+      "line_start": 50,
+      "line_end": 50,
+      "estimated_hours": 4,
+      "dependencies": ["record package"],
+      "fix_instructions": "Replace flutter_sound with maintained alternatives like record package"
+    },
+    {
+      "id": "QUAL-002",
+      "type": "quality",
+      "severity": "medium",
+      "title": "Minimal Linting Configuration",
+      "file": "analysis_options.yaml",
+      "line_start": 23,
+      "line_end": 25,
+      "estimated_hours": 2,
+      "dependencies": [],
+      "fix_instructions": "Enable stricter lint rules for better code quality"
+    },
+    {
+      "id": "QUAL-003",
+      "type": "quality",
+      "severity": "low",
+      "title": "Commented Code Instead of Removal",
+      "file": "pubspec.yaml",
+      "line_start": 40,
+      "line_end": 40,
+      "estimated_hours": 0.5,
+      "dependencies": [],
+      "fix_instructions": "Remove commented telephony package line"
+    },
+    {
+      "id": "WEB-001",
+      "type": "compatibility",
+      "severity": "medium",
+      "title": "Generic Web App Metadata",
+      "file": "web/index.html",
+      "line_start": 21,
+      "line_end": 21,
+      "estimated_hours": 1,
+      "dependencies": [],
+      "fix_instructions": "Update web metadata with proper app description and title"
+    },
+    {
+      "id": "WEB-002",
+      "type": "compatibility",
+      "severity": "medium",
+      "title": "Missing Progressive Web App Features",
+      "file": "web/",
+      "line_start": 0,
+      "line_end": 0,
+      "estimated_hours": 4,
+      "dependencies": [],
+      "fix_instructions": "Implement service worker for offline support"
+    },
+    {
+      "id": "DEP-001",
+      "type": "quality",
+      "severity": "medium",
+      "title": "Outdated permission_handler Plugin",
+      "file": "pubspec.yaml",
+      "line_start": 23,
+      "line_end": 23,
+      "estimated_hours": 3,
+      "dependencies": ["Android SDK update"],
+      "fix_instructions": "Update to permission_handler 12.x for Android 14 support"
+    }
+  ],
+  "categories": {
+    "security": {
+      "count": 7,
+      "estimated_hours": 19,
+      "critical_count": 4
+    },
+    "performance": {
+      "count": 4,
+      "estimated_hours": 15,
+      "critical_count": 0
+    },
+    "quality": {
+      "count": 4,
+      "estimated_hours": 9.5,
+      "critical_count": 0
+    },
+    "compatibility": {
+      "count": 2,
+      "estimated_hours": 5,
+      "critical_count": 0
+    }
+  }
+}

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'config/themes.dart';
 import 'services/ai_service.dart';
 import 'services/database_service.dart';
+import 'services/database_factory.dart';
 import 'services/permission_service.dart';
 import 'services/personality_service.dart';
 import 'services/theme_service.dart';
@@ -13,6 +14,9 @@ import 'screens/splash/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize database factory for web platform
+  initializeDatabaseFactory();
   
   // Initialize services
   await DatabaseService.instance.initialize();

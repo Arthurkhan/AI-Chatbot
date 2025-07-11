@@ -1,8 +1,11 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gemma/flutter_gemma.dart';
+import 'package:path_provider/path_provider.dart';
 import 'dart:async';
+import 'dart:io';
 import '../models/personality.dart';
-import '../models/message.dart';
+import '../models/message.dart' as app_models;
 import '../config/constants.dart';
 
 class AIService extends ChangeNotifier {
@@ -10,8 +13,6 @@ class AIService extends ChangeNotifier {
   factory AIService() => _instance;
   AIService._internal();
 
-  InferenceModel? _model;
-  ModelFileManager? _modelManager;
   bool _isInitialized = false;
   bool _isLoading = false;
   double _downloadProgress = 0.0;
@@ -31,13 +32,17 @@ class AIService extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      // Initialize model manager
-      _modelManager = ModelFileManager();
-      
-      // Check if model is already downloaded
+      // Check if model file exists
       final modelPath = await _getModelPath();
       if (modelPath != null) {
-        await _loadModel(modelPath);
+        // Initialize flutter_gemma with the model
+        await FlutterGemmaPlugin.instance.init(
+          modelPath: modelPath,
+          maxTokens: 4096,
+          temperature: 0.8,
+          topK: 40,
+        );
+        _isInitialized = true;
       } else {
         // Model needs to be downloaded
         _error = 'Model not downloaded. Please download the AI model first.';
@@ -60,19 +65,23 @@ class AIService extends ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      // Download model with progress updates
-      await for (final progress in _modelManager!.installModelFromNetworkWithProgress(
-        AppConstants.modelDownloadUrl,
-      )) {
-        _downloadProgress = progress / 100.0;
-        notifyListeners();
-      }
-
-      // Load the downloaded model
+      // Try to find and setup model
       final modelPath = await _getModelPath();
       if (modelPath != null) {
-        await _loadModel(modelPath);
+        _downloadProgress = 1.0;
+        notifyListeners();
+        await initialize();
+        return;
       }
+      
+      // If no model found, provide simple instructions
+      _error = '''Model not found!
+
+To use the AI:
+1. Place your model.bin file in the Downloads folder
+2. Tap this button again
+
+The app will automatically copy it to the right place.''';
     } catch (e) {
       _error = 'Failed to download model: $e';
       debugPrint(_error);
@@ -83,63 +92,93 @@ class AIService extends ChangeNotifier {
   }
 
   Future<String?> _getModelPath() async {
-    // This would check for the model in the app's storage
-    // For now, returning null to indicate model needs downloading
-    return null;
-  }
-
-  Future<void> _loadModel(String modelPath) async {
-    try {
-      _model = await _modelManager!.loadModel(
-        modelPath,
-        config: InferenceConfig(
-          maxTokens: AppConstants.maxTokens,
-          temperature: AppConstants.defaultTemperature,
-          topK: AppConstants.defaultTopK,
-        ),
-      );
-      _isInitialized = true;
-    } catch (e) {
-      _error = 'Failed to load model: $e';
-      debugPrint(_error);
+    // Get app's documents directory for storing the model
+    final appDir = await getApplicationDocumentsDirectory();
+    final modelPath = '${appDir.path}/model.bin';
+    final modelFile = File(modelPath);
+    
+    // Check if model already exists in app documents
+    if (await modelFile.exists()) {
+      debugPrint('Model found at: $modelPath');
+      return modelPath;
     }
+    
+    // Try to copy from assets
+    try {
+      debugPrint('Copying model from assets...');
+      final data = await rootBundle.load('assets/models/model.bin');
+      final bytes = data.buffer.asUint8List();
+      await modelFile.writeAsBytes(bytes);
+      debugPrint('Model copied successfully to: $modelPath');
+      return modelPath;
+    } catch (e) {
+      debugPrint('Model not found in assets: $e');
+    }
+    
+    // For development: check Downloads folder
+    if (Platform.isAndroid) {
+      final downloadsPath = '/storage/emulated/0/Download/model.bin';
+      if (await File(downloadsPath).exists()) {
+        debugPrint('Found model in Downloads, copying to app directory...');
+        await File(downloadsPath).copy(modelPath);
+        return modelPath;
+      }
+    }
+    
+    return null;
   }
 
   Stream<String> generateResponse({
     required String prompt,
     required Personality personality,
-    List<Message>? conversationHistory,
+    List<app_models.Message>? conversationHistory,
   }) async* {
-    if (!_isInitialized || _model == null) {
+    if (!_isInitialized) {
       yield 'AI model not initialized. Please download the model first.';
       return;
     }
 
     try {
-      // Build the full prompt with personality context
-      final fullPrompt = _buildPrompt(
-        systemPrompt: personality.systemPrompt,
-        conversationHistory: conversationHistory,
-        userMessage: prompt,
-      );
-
-      // Create inference session
-      final session = await _model!.createSession();
-
-      // Add the prompt
-      await session.addQueryChunk(
-        Message.text(text: fullPrompt, isUser: true),
-      );
-
-      // Stream the response
-      String fullResponse = '';
-      await for (final chunk in session.getResponseAsync()) {
-        fullResponse += chunk;
-        yield fullResponse;
+      // Build conversation messages for flutter_gemma
+      final messages = <Message>[];
+      
+      // Add system prompt as first message
+      messages.add(Message(
+        text: personality.systemPrompt,
+        isUser: false,
+      ));
+      
+      // Add conversation history
+      if (conversationHistory != null && conversationHistory.isNotEmpty) {
+        final recentMessages = conversationHistory.length > 10
+            ? conversationHistory.sublist(conversationHistory.length - 10)
+            : conversationHistory;
+        
+        for (final msg in recentMessages) {
+          messages.add(Message(
+            text: msg.content,
+            isUser: msg.isUser,
+          ));
+        }
       }
+      
+      // Add current user message
+      messages.add(Message(
+        text: prompt,
+        isUser: true,
+      ));
 
-      // Close the session
-      await session.close();
+      // Generate response using flutter_gemma
+      final responseStream = FlutterGemmaPlugin.instance.getChatResponseAsync(
+        messages: messages,
+        chatContextLength: 4,
+      );
+
+      await for (final chunk in responseStream) {
+        if (chunk != null) {
+          yield chunk;
+        }
+      }
     } catch (e) {
       _error = 'Failed to generate response: $e';
       debugPrint(_error);
@@ -147,40 +186,9 @@ class AIService extends ChangeNotifier {
     }
   }
 
-  String _buildPrompt({
-    required String systemPrompt,
-    List<Message>? conversationHistory,
-    required String userMessage,
-  }) {
-    final buffer = StringBuffer();
-    
-    // Add system prompt
-    buffer.writeln('System: $systemPrompt');
-    buffer.writeln();
-    
-    // Add conversation history (limit to recent messages to fit context)
-    if (conversationHistory != null && conversationHistory.isNotEmpty) {
-      final recentMessages = conversationHistory.length > 10
-          ? conversationHistory.sublist(conversationHistory.length - 10)
-          : conversationHistory;
-      
-      buffer.writeln('Conversation history:');
-      for (final message in recentMessages) {
-        final role = message.isUser ? 'User' : 'Assistant';
-        buffer.writeln('$role: ${message.content}');
-      }
-      buffer.writeln();
-    }
-    
-    // Add current user message
-    buffer.writeln('User: $userMessage');
-    buffer.writeln('Assistant:');
-    
-    return buffer.toString();
-  }
-
+  @override
   void dispose() {
-    _model?.dispose();
+    // flutter_gemma 0.2.4 doesn't have a dispose method
     super.dispose();
   }
 }
